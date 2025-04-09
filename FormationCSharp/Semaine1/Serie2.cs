@@ -56,6 +56,7 @@ namespace Semaine1
         }
         static void Main(string[] args)
         {
+            Person p = new Person();
             /*
             int[] tableau1 = new int[5]; // Tableau de taille 5 , valeurs des é l é ments à 0.
             int[] tableau2 = new int[] { 1, 3, 5, 7, 9 }; // Initialisation des é l é ments .
