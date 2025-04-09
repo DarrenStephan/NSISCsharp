@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Semaine1
 {
-    internal class Program
+    internal class Serie1
     {
         static void Main(string[] args)
         {
@@ -184,7 +184,7 @@ namespace Semaine1
         static int Factorielle(int n)
         {
             int res = 1;
-            for(int i=1; i<= n; i++)
+            for(int i=1; i <= n; i++)
             {
                 res *= i;
             }
