@@ -227,6 +227,7 @@ namespace Semaine1
 
         public static List<SortData> PerformancesTest(List<int> sizes, int count)
         {
+            
             List<SortData> res = new List<SortData>();
             foreach (int size in sizes)
             {
@@ -234,7 +235,7 @@ namespace Semaine1
             }
             return res;
         }
-
+        
         public static void DisplayPerformances(List<int> sizes, int count)
         {
             List<SortData> lst = PerformancesTest(sizes, count);
