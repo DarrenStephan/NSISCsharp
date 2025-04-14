@@ -66,10 +66,10 @@ namespace Semaine1
         static void Main(string[] args)
         {
 
-            string code = "=.=.=.=...=...=.===.=.=...=.===.=.=...===.===.===.....=.===.===...===.===.===...=.===.=...=.===.=.=...===.=.=";
+            /*string code = "=.=.=.=...=...=.===.=.=...=.===.=.=...===.===.===.....=.===.===...===.===.===...=.===.=...=.===.=.=...===.=.=";
             string codeError = "=.=.=.=...=...=.===.=.=...=.===.=.=...===.===.===.....=.===.===...===.===.===...error...=.===.=...=.===.=.=...===.=.=";
             string codeImperfections = "=.=.=.=...=....=.===.=..=...=.===.=..=....===.===.===.......=.===.===...===.===.===....=.===.=...=.===.=.=...===.=.=";
-            /*Console.WriteLine(LettersCount(code));
+            Console.WriteLine(LettersCount(code));
             Console.WriteLine(WordsCount(code));
             Console.WriteLine(MorseTranslation(code));
             Console.WriteLine(MorseTranslation(codeError));
@@ -85,8 +85,33 @@ namespace Semaine1
             //TestPhoneBook();
 
             BusinessSchedule businessSchedule = new BusinessSchedule(true);
-            businessSchedule.Schedule.Add(new DateTime(2025, 4, 11, 14, 30, 0), new DateTime(2025, 4, 11, 16, 30, 0));
             businessSchedule.Schedule.Add(new DateTime(2025, 4, 10, 10, 30, 0), new DateTime(2025, 4, 10, 12, 00, 0));
+            businessSchedule.Schedule.Add(new DateTime(2025, 4, 11, 14, 30, 0), new DateTime(2025, 4, 11, 16, 30, 0));
+            businessSchedule.Schedule.Add(new DateTime(2025, 4, 12, 10, 30, 0), new DateTime(2025, 4, 12, 12, 00, 0));
+            businessSchedule.Schedule.Add(new DateTime(2025, 4, 13, 10, 30, 0), new DateTime(2025, 4, 12, 13, 00, 0));
+            //businessSchedule.DisplayMeetings();
+            /*KeyValuePair<DateTime, DateTime> kvp;
+            kvp = businessSchedule.ClosestElements(new DateTime(2025, 4, 11, 8, 30, 0));
+            Console.WriteLine(kvp.Key.ToString() + " - " + kvp.Value.ToString());
+            kvp = businessSchedule.ClosestElements(new DateTime(2025, 4, 12, 8, 30, 0));
+            Console.WriteLine(kvp.Key.ToString() + " - " + kvp.Value.ToString());
+            kvp = businessSchedule.ClosestElements(new DateTime(2025, 4, 9, 8, 30, 0));
+            Console.WriteLine(kvp.Key.ToString() + " - " + kvp.Value.ToString());
+            kvp = businessSchedule.ClosestElements(new DateTime(2025, 4, 14, 8, 30, 0));
+            Console.WriteLine(kvp.Key.ToString() + " - " + kvp.Value.ToString());*/
+            businessSchedule.AddBusinessMeeting(new DateTime(2025, 4, 11, 17, 30, 0), new TimeSpan(1, 0, 0));
+            businessSchedule.AddBusinessMeeting(new DateTime(2025, 4, 9, 17, 30, 0), new TimeSpan(1, 0, 0));
+            businessSchedule.AddBusinessMeeting(new DateTime(2025, 4, 14, 17, 30, 0), new TimeSpan(1, 0, 0));
+            
+            businessSchedule.AddBusinessMeeting(new DateTime(2010, 4, 14, 17, 30, 0), new TimeSpan(1, 0, 0));
+            businessSchedule.AddBusinessMeeting(new DateTime(2040, 4, 14, 17, 30, 0), new TimeSpan(1, 0, 0));
+            businessSchedule.AddBusinessMeeting(new DateTime(2025, 4, 11, 15, 30, 0), new TimeSpan(2, 0, 0));
+            businessSchedule.AddBusinessMeeting(new DateTime(2025, 4, 11, 13, 30, 0), new TimeSpan(2, 0, 0));
+            businessSchedule.AddBusinessMeeting(new DateTime(2025, 4, 11, 15, 0, 0), new TimeSpan(1, 0, 0));
+            businessSchedule.AddBusinessMeeting(new DateTime(2025, 4, 11, 14, 30, 0), new TimeSpan(2, 0, 0));
+            businessSchedule.DisplayMeetings();
+
+            businessSchedule.ClearMeetingPeriod(new DateTime(2025, 4, 11, 15, 0, 0), new DateTime(2025, 4, 12, 11, 00, 0));
             businessSchedule.DisplayMeetings();
 
             Console.ReadKey();
@@ -115,7 +140,7 @@ namespace Semaine1
                     try
                     {
                         traduction = reversedMorseCode[lettre.TrimStart('.').Replace("..", ".")];
-                    } catch (KeyNotFoundException e)
+                    } catch (KeyNotFoundException )
                     {
                         traduction = '+';
                     }
@@ -143,7 +168,7 @@ namespace Semaine1
                     {
                         traduction = morseCode[lettre];
                     }
-                    catch (KeyNotFoundException e)
+                    catch (KeyNotFoundException)
                     {
                         traduction = "+";
                     }
@@ -246,7 +271,6 @@ namespace Semaine1
                 catch
                 {
                     throw new Exception("Numero non existant dans l'annuaire");
-                    return "";
                 }
             }
 
@@ -325,7 +349,70 @@ namespace Semaine1
                     Console.WriteLine($"réunion {index}       : {kvp.Key.ToString()} - {kvp.Value.ToString()}");
                     index++;
                 }
+                if (IsEmpty()) Console.WriteLine("Pas de réunions programmées");
                 Console.WriteLine("-----------------------------------------------------------");
+            }
+
+            public KeyValuePair<DateTime, DateTime> ClosestElements(DateTime beginMeeting)
+            {
+                int index = -1;
+                for(int i=0; i<Schedule.Count; i++)
+                {
+                    if(Schedule.ElementAt(i).Key > beginMeeting)
+                    {
+                        index = i;
+                        break;
+                    }
+                }
+                if (index == -1)
+                {
+                    return new KeyValuePair<DateTime, DateTime>(Schedule.Last().Key, DateTime.MinValue);
+                }
+                if (index == 0)
+                {
+                    return new KeyValuePair<DateTime, DateTime>(DateTime.MinValue, Schedule.First().Key);
+                }
+                return new KeyValuePair<DateTime, DateTime>(Schedule.ElementAt(index - 1).Key, Schedule.ElementAt(index).Key);
+            }
+            
+            public bool AddBusinessMeeting(DateTime date, TimeSpan duration)
+            {
+                DateTime endDate = date + duration;
+                if (date < Begin || date > End || endDate < Begin || endDate > End) return false;
+                KeyValuePair<DateTime, DateTime> closestDate = ClosestElements(date);
+                if(closestDate.Key != DateTime.MinValue)
+                {
+                    if (Schedule[closestDate.Key] > date) return false;
+                }
+                if (closestDate.Value != DateTime.MinValue)
+                {
+                    if (closestDate.Value < endDate) return false;
+                }
+                Schedule[date] = endDate; 
+                return true;
+            }
+
+            public bool DeleteBusinessMeeting(DateTime date)
+            {
+                return Schedule.Remove(date);
+            }
+
+            public int ClearMeetingPeriod(DateTime begin, DateTime end)
+            {
+                if (begin < Begin || end > End) throw new ArgumentException();
+                int res = 0;
+
+                for(int i=0; i < Schedule.Count; i++)
+                {
+                    if (Schedule.ElementAt(i).Value > begin && Schedule.ElementAt(i).Key < end)
+                    {
+                        Schedule.Remove(Schedule.ElementAt(i).Key);
+                        res++;
+                        i--;
+                    }
+                }
+
+                return res;
             }
         }
     }
