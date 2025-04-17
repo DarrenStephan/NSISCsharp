@@ -43,7 +43,7 @@
 
         public bool Depot(decimal montant)
         {
-            if(montant < 0) return false;
+            if(montant <= 0) return false;
             _solde+= montant;
 
             return true;
@@ -51,14 +51,14 @@
 
         public bool Retrait(decimal montant)
         {
-            if (montant < 0 || !VerificationLimiteRetrait(montant) || Solde < montant) return false;
+            if (montant <= 0 || !VerificationLimiteRetrait(montant) || Solde < montant) return false;
             _solde -= montant; 
             return true;
         }
 
         public bool Virement(decimal montant, Compte compteDest)
         {
-            if (montant < 0 || !VerificationLimiteRetrait(montant) || Solde < montant || this.Id == compteDest.Id) return false;
+            if (montant <= 0 || !VerificationLimiteRetrait(montant) || Solde < montant || this.Id == compteDest.Id) return false;
             _solde -= montant;
             compteDest.Solde += montant;
             return true;
@@ -66,7 +66,7 @@
 
         public bool Prelevement(decimal montant, Compte compteSrc)
         {
-            if (montant < 0 || !compteSrc.VerificationLimiteRetrait(montant) || compteSrc.Solde < montant || this.Id == compteSrc.Id) return false;
+            if (montant <= 0 || !compteSrc.VerificationLimiteRetrait(montant) || compteSrc.Solde < montant || this.Id == compteSrc.Id) return false;
             _solde += montant;
             compteSrc.Solde -= montant;
             return true;

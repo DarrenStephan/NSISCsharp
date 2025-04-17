@@ -8,7 +8,7 @@
         public Compte? CreerCompte(int id, decimal? solde, int limiteRetrait = 1000)
         {
             decimal cptSolde = solde == null ? 0 : (decimal)solde;
-            if (solde < 0 || _comptes.Any(c => c.Id == id)) return null;
+            if (solde < 0 || id <= 0 || _comptes.Any(c => c.Id == id)) return null;
             Compte compte = new Compte(id, cptSolde, limiteRetrait);
             _comptes.Add(compte);
             return compte;
