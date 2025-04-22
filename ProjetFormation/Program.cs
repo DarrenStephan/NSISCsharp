@@ -23,6 +23,7 @@ namespace ProjetFormation
             string[]? ligne = entree.Lecture();
             while (ligne != null)
             {
+                // Astuce bonne pratique, éviter les expressions complexes pour un passage d'argument. 
                 banque.CreerCompte(int.Parse(ligne[0]), ligne[1] == "" ? 0 : decimal.Parse(ligne[1]));
                 ligne = entree.Lecture();
             }
@@ -37,6 +38,8 @@ namespace ProjetFormation
             string[]? ligne = entree.Lecture();
             while (ligne != null)
             {
+                // Attention Parse lève une exception si la conversion n'est pas possible. 
+                // 4 arguments susceptibles de provoquer une erreur. 
                 Transaction transaction = new Transaction(int.Parse(ligne[0]), decimal.Parse(ligne[1]), int.Parse(ligne[2]), int.Parse(ligne[3]));
                 banque.TraiterTransaction(transaction);
                 sortie.Ecriture(transaction, banque.Comptes);
