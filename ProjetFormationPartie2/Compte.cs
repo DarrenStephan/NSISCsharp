@@ -1,0 +1,131 @@
+﻿namespace ProjetFormation
+{
+    public class Compte
+    {
+        private int _id;
+        private decimal _solde;
+        private int _limiteRetrait;
+        private DateTime _dateCreation;
+        private DateTime _dateResiliation = DateTime.MaxValue;
+        private List<Transaction> _historiqueTransactions;
+
+        internal Compte(int id, decimal solde, int limiteRetrait, DateTime dateCreation)
+        {
+            _id = id;
+            _solde = solde;
+            _limiteRetrait = limiteRetrait;
+            _dateCreation = dateCreation;
+            _historiqueTransactions = new List<Transaction>();
+        }
+
+        public decimal Id
+        {
+            get { return _id; }
+        }
+
+        public decimal Solde
+        {
+            get { return _solde; }
+            set { _solde = value; }
+        }
+
+        public int LimiteRetrait
+        {
+            get { return _limiteRetrait; }
+        }
+
+        public DateTime DateCreation { get { return _dateCreation; } }
+        public DateTime DateResiliation { get { return _dateResiliation; } }
+
+        public List<Transaction> HistoriqueTransactions
+        {
+            get { return _historiqueTransactions; }
+        }
+
+        public void AddTransaction(Transaction transaction)
+        {
+            _historiqueTransactions.Add(transaction);
+        }
+
+        public void Cloturer(DateTime dateCloture)
+        {
+            _dateResiliation = dateCloture;
+        }
+
+        public bool Depot(decimal montant, DateTime dateEffet)
+        {
+            if(montant <= 0 || dateEffet > _dateResiliation) return false;
+            _solde+= montant;
+
+            return true;
+        }
+
+        public bool Retrait(decimal montant, DateTime dateEffet)
+        {
+            if (montant <= 0 || !VerificationLimiteRetrait(montant) || !VerificationLimiteRetraitHebdo(montant, dateEffet) || Solde < montant || dateEffet > _dateResiliation) return false;
+            _solde -= montant; 
+            return true;
+        }
+
+        public bool Virement(decimal montant, Compte compteDest, DateTime dateEffet, bool isExogene, TypeGestionnaire typeGestionnaire)
+        {
+            if (montant <= 0 || !VerificationLimiteRetrait(montant) || !VerificationLimiteRetraitHebdo(montant, dateEffet) || Solde < montant || this.Id == compteDest.Id || dateEffet > _dateResiliation) return false;
+            _solde -= montant;
+            if(isExogene)
+            {
+                if (typeGestionnaire == TypeGestionnaire.Particulier) montant = montant - montant * 0.01m;
+                else montant = montant - 10;
+            }
+            compteDest.Solde += montant;
+            return true;
+        }
+
+        public bool Prelevement(decimal montant, Compte compteSrc, DateTime dateEffet, bool isExogene, TypeGestionnaire typeGestionnaire)
+        {
+            if (montant <= 0 || !compteSrc.VerificationLimiteRetrait(montant) || !compteSrc.VerificationLimiteRetraitHebdo(montant, dateEffet) || compteSrc.Solde < montant || this.Id == compteSrc.Id || dateEffet > _dateResiliation) return false;
+            compteSrc.Solde -= montant;
+            if (isExogene)
+            {
+                if (typeGestionnaire == TypeGestionnaire.Particulier) montant = montant - montant * 0.01m;
+                else montant = montant - 10;
+            }
+            _solde += montant;
+            return true;
+        }
+
+        /* recupere les 9 derniers virement/retrait du compte, ajoute le montant en parametre et verifie que ce montant total 
+         * ne depasse pas la limite de paiement du compte
+         */
+        public bool VerificationLimiteRetrait(decimal montant)
+        {
+            int rupt = 0;
+            decimal montantTot = 0;
+            for(int i = _historiqueTransactions.Count - 1; i >= 0; i--)
+            {
+                if (_historiqueTransactions[i].IdCompteSource == this._id && _historiqueTransactions[i].Statut)
+                {
+                    montantTot += _historiqueTransactions[i].Montant;
+                    rupt++;
+                    if (rupt == 9) break;
+                }
+            }
+            return montantTot + montant < _limiteRetrait;
+        }
+
+        /* verifie que sur la derniere semaine le montant total des transactions  
+         * ne depasse pas la limite de paiement de 2000€ du compte
+         */
+        public bool VerificationLimiteRetraitHebdo(decimal montant, DateTime dateEffetTransa)
+        {
+            decimal montantTot = 0;
+            foreach(Transaction transa in _historiqueTransactions)
+            {
+                if (Math.Abs((transa.DateEffet.Date - dateEffetTransa.Date).TotalDays) <= 7)
+                {
+                    montantTot += transa.Montant;
+                }
+            }
+            return montantTot + montant < 2000;
+        }
+    }
+}
