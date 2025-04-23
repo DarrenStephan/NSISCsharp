@@ -30,6 +30,22 @@ namespace ProjetFormation
             streamWriter.WriteLine(id + ";" + statut + ";");
         }
 
+        public void EcritureMetrologie(int nbCompte, int nbTransaReussite, int nbTransaEchec, decimal mttTotReussites, List<Gestionnaire> gestionnaires)
+        {
+            streamWriter.WriteLine("Statistiques :");
+            streamWriter.WriteLine("Nombre de comptes : " + nbCompte);
+            streamWriter.WriteLine("Nombre de transactions : " + (nbTransaEchec + nbTransaReussite));
+            streamWriter.WriteLine("Nombre de réussites : " + nbTransaReussite);
+            streamWriter.WriteLine("Nombre d'echecs : " + nbTransaEchec );
+            streamWriter.WriteLine("Montant total des réussites : " + mttTotReussites + " euros");
+            streamWriter.WriteLine("");
+            streamWriter.WriteLine("Frais de gestions :");
+            foreach(Gestionnaire gestionnaire in gestionnaires)
+            {
+                streamWriter.WriteLine(gestionnaire.Id + " : " + gestionnaire.MttTotFraisGestion+ " euros");
+            }
+        }
+
         public void FermetureWriter()
         {
             streamWriter.Close();

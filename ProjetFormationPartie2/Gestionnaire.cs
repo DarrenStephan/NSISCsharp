@@ -11,7 +11,7 @@
         private int _id;
         private TypeGestionnaire _typeGestionnaire;
         private int _nbTransaLimite;
-        private decimal _totFraisgestion;
+        private decimal _mttTotFraisgestion;
         private List<Compte> _comptes = new List<Compte>();
 
         public Gestionnaire(int id, TypeGestionnaire typeGestionnaire, int nbTransaLimite)
@@ -24,10 +24,14 @@
         public int Id { get { return _id; } }
         public TypeGestionnaire TypeGestionnaire { get { return _typeGestionnaire; } }
         public int NbTransaLimite { get {  return _nbTransaLimite; } }
-        public decimal TotFraisGestion { get { return _totFraisgestion; } }
+        public decimal MttTotFraisGestion { get { return _mttTotFraisgestion; } set { _mttTotFraisgestion = value; } }
         public List<Compte> Comptes { get { return _comptes; } }
         public void AddCompte(Compte compte) {  _comptes.Add(compte); }
         public void RemoveCompte(Compte compte) {  _comptes.Remove(compte); }
+        public void ajouterFraisDeGestion(decimal montant)
+        {
+            _mttTotFraisgestion += montant;
+        }
 
         public bool CessionCompte(int idCompte, Gestionnaire gestionnaireDest)
         {

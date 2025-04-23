@@ -15,6 +15,7 @@ namespace ProjetFormation
             CreationGestionnaires(banque, entree);
             OperationsCompte(banque, entree, sortie);
             GestionTransactions(banque, entree, sortie);
+            Metrologie(banque, sortie);
             
             entree.FermetureReader();
             sortie.FermetureWriter();
@@ -81,6 +82,13 @@ namespace ProjetFormation
             entree.FermetureReader();
             sortie.FermetureWriter();
         }
+
+        public static void Metrologie(Banque banque, Sortie sortie)
+        {
+            sortie.OuvertureWriterMetrologie();
+            sortie.EcritureMetrologie(banque.NbComptesCrees, banque.NbTransaReussies, banque.NBTransaEchec, banque.MttTotTransaReussies, banque.Gestionnaires);
+        }
+
         /*
         public static void TestBanque()
         {

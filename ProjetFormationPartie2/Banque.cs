@@ -5,12 +5,17 @@ namespace ProjetFormation
     public class Banque
     {
         private List<Gestionnaire> _gestionnaires = new List<Gestionnaire>();
-        private List<Gestionnaire> Gestionnaires { get { return _gestionnaires; } }
 
         private int _nbComptesCrees = 0;
         private int _nbTransaReussies= 0;
         private int _nbTransaEchec = 0;
         private decimal _mttTotTransaReussies= 0;
+
+        public List<Gestionnaire> Gestionnaires { get { return _gestionnaires; } }
+        public int NbComptesCrees {  get { return _nbComptesCrees; } }
+        public int NbTransaReussies { get { return _nbTransaReussies; } }
+        public int NBTransaEchec { get { return _nbTransaEchec; } }
+        public decimal MttTotTransaReussies { get { return _mttTotTransaReussies; } }
 
         public Compte? CreerCompte(int id, decimal? solde, int idGestionnaire, DateTime dateCreation)
         {
@@ -81,12 +86,18 @@ namespace ProjetFormation
                     _nbTransaEchec++;
                     return;
                 }
-                transaction.Statut = cptSrc.Virement(transaction.Montant, cptDest, transaction.DateEffet, gestionnaireDest.Id != gestionnaireSrc.Id, gestionnaireSrc.TypeGestionnaire);
+                transaction.Statut = cptSrc.Virement(transaction.Montant, cptDest, transaction.DateEffet, gestionnaireDest.Id != gestionnaireSrc.Id, gestionnaireSrc.TypeGestionnaire, (x=> gestionnaireSrc.MttTotFraisGestion += x));
                 cptSrc.AddTransaction(transaction);
                 cptDest.AddTransaction(transaction);
             }
-            _nbTransaReussies++;
-            _mttTotTransaReussies += transaction.Montant;
+            if(transaction.Statut)
+            {
+                _nbTransaReussies++;
+                _mttTotTransaReussies += transaction.Montant;
+            } else
+            {
+                _nbTransaEchec++;
+            }
         }
 
         public bool TraiterOperationCompte(int idCompte, DateTime date, decimal solde, string entree, string sortie)
@@ -99,8 +110,6 @@ namespace ProjetFormation
                 if(gestionnaire == null) return false;
                 Compte? compte = CreerCompte(idCompte, solde, idGestionnaire, date);
                 if (compte == null) return false;
-                gestionnaire.AddCompte(compte);
-                _nbComptesCrees++;
             }
             else if (entree == "")
             {

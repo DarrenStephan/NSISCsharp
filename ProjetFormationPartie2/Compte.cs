@@ -1,4 +1,6 @@
-﻿namespace ProjetFormation
+﻿using System.Runtime.CompilerServices;
+
+namespace ProjetFormation
 {
     public class Compte
     {
@@ -60,30 +62,44 @@
             return true;
         }
 
-        public bool Virement(decimal montant, Compte compteDest, DateTime dateEffet, bool isExogene, TypeGestionnaire typeGestionnaire)
+        public bool Virement(decimal montant, Compte compteDest, DateTime dateEffet, bool isExogene, TypeGestionnaire typeGestionnaire, Func<decimal, decimal> ajoutFraisDeGestion)
         {
             if (montant <= 0 || !VerificationLimiteRetrait(montant) || !VerificationLimiteRetraitHebdo(montant, dateEffet) || Solde < montant || this.Id == compteDest.Id || dateEffet > _dateResiliation || dateEffet < _dateCreation || dateEffet > compteDest.DateResiliation || dateEffet < compteDest.DateCreation) return false;
             _solde -= montant;
             if(isExogene)
             {
-                if (typeGestionnaire == TypeGestionnaire.Particulier) montant = montant - montant * 0.01m;
-                else montant = montant - 10;
+                ajoutFraisDeGestion(ApplicationFraisGestion(typeGestionnaire, ref montant));
             }
             compteDest.Solde += montant;
             return true;
         }
 
-        public bool Prelevement(decimal montant, Compte compteSrc, DateTime dateEffet, bool isExogene, TypeGestionnaire typeGestionnaire)
+        public bool Prelevement(decimal montant, Compte compteSrc, DateTime dateEffet, bool isExogene, TypeGestionnaire typeGestionnaire, Func<decimal, decimal> ajoutFraisDeGestion)
         {
             if (montant <= 0 || !compteSrc.VerificationLimiteRetrait(montant) || !compteSrc.VerificationLimiteRetraitHebdo(montant, dateEffet) || compteSrc.Solde < montant || this.Id == compteSrc.Id || dateEffet > _dateResiliation || dateEffet < _dateCreation || dateEffet > compteSrc.DateResiliation || dateEffet < compteSrc.DateCreation) return false;
             compteSrc.Solde -= montant;
             if (isExogene)
             {
-                if (typeGestionnaire == TypeGestionnaire.Particulier) montant = montant - montant * 0.01m;
-                else montant = montant - 10;
+                ajoutFraisDeGestion(ApplicationFraisGestion(typeGestionnaire, ref montant));
             }
             _solde += montant;
             return true;
+        }
+
+        //calcul et renvoie les frais de gestion en fonction du type de gestionnaire et les deduit du montant
+        public decimal ApplicationFraisGestion(TypeGestionnaire typeGestionnaire, ref decimal montant)
+        {
+            decimal frais;
+            if (typeGestionnaire == TypeGestionnaire.Particulier)
+            {
+                frais = montant * 0.01m;
+            }
+            else
+            {
+                frais = 10;
+            }
+            montant = montant - frais;
+            return frais;
         }
 
         /* recupere les 9 derniers virement/retrait du compte, ajoute le montant en parametre et verifie que ce montant total 
