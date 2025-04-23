@@ -14,6 +14,13 @@
         private decimal _totFraisgestion;
         private List<Compte> _comptes = new List<Compte>();
 
+        public Gestionnaire(int id, TypeGestionnaire typeGestionnaire, int nbTransaLimite)
+        {
+            _id = id;
+            _typeGestionnaire = typeGestionnaire;
+            _nbTransaLimite = nbTransaLimite;
+        }
+
         public int Id { get { return _id; } }
         public TypeGestionnaire TypeGestionnaire { get { return _typeGestionnaire; } }
         public int NbTransaLimite { get {  return _nbTransaLimite; } }
@@ -22,20 +29,22 @@
         public void AddCompte(Compte compte) {  _comptes.Add(compte); }
         public void RemoveCompte(Compte compte) {  _comptes.Remove(compte); }
 
-        public void CessionCompte(int idCompte, Gestionnaire gestionnaireDest)
+        public bool CessionCompte(int idCompte, Gestionnaire gestionnaireDest)
         {
             Compte? compte = _comptes.Find(c => c.Id == idCompte);
-            if (compte == null) return;
+            if (compte == null) return false;
             _comptes.Remove(compte);
             gestionnaireDest.AddCompte(compte);
+            return true;
         }
 
-        public void receptionCompte(int idCompte, Gestionnaire gestionnaireSrc)
+        public bool receptionCompte(int idCompte, Gestionnaire gestionnaireSrc)
         {
             Compte? compte = _comptes.Find(c => c.Id == idCompte);
-            if (compte == null) return;
+            if (compte == null) return false;
             _comptes.Add(compte);
             gestionnaireSrc.RemoveCompte(compte);
+            return true;
         }
     }
 }

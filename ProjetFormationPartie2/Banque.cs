@@ -12,11 +12,11 @@ namespace ProjetFormation
         private int _nbTransaEchec = 0;
         private decimal _mttTotTransaReussies= 0;
 
-        public Compte? CreerCompte(int id, decimal? solde, int idGestionnaire, DateTime dateCreation, int limiteRetrait = 2000)
+        public Compte? CreerCompte(int id, decimal? solde, int idGestionnaire, DateTime dateCreation)
         {
             decimal cptSolde = solde == null ? 0 : (decimal)solde;
-            if (solde < 0 || id <= 0 || !_gestionnaires.Any(g => g.Id==id) || _gestionnaires.Any(g => g.Comptes.Any(c => c.Id == id))) return null;
-            Compte compte = new Compte(id, cptSolde, limiteRetrait, dateCreation);
+            if (solde < 0 || id <= 0 || !_gestionnaires.Any(g => g.Id==idGestionnaire) || _gestionnaires.Any(g => g.Comptes.Any(c => c.Id == id))) return null;
+            Compte compte = new Compte(id, cptSolde, dateCreation);
             _gestionnaires.Find(g => g.Id == idGestionnaire).AddCompte(compte);
             _nbComptesCrees++;
             return compte;
@@ -28,6 +28,19 @@ namespace ProjetFormation
             if(compte == null) return false;
             compte.Cloturer(dateCloture);
             return true;
+        }
+
+        public Gestionnaire? CreerGestionnaire(int id, TypeGestionnaire typeGestionnaire, int nbTransa)
+        {
+            if (_gestionnaires.Any(g => g.Id == id) || nbTransa < 0 || id <= 0) return null;
+            Gestionnaire gestionnaire = new Gestionnaire(id, typeGestionnaire, nbTransa);
+            AjouterGestionnaire(gestionnaire);
+            return gestionnaire;
+        }
+
+        public void AjouterGestionnaire(Gestionnaire gestionnaire)
+        {
+            _gestionnaires.Add(gestionnaire);
         }
 
         public void TraiterTransaction(Transaction transaction)
@@ -101,10 +114,9 @@ namespace ProjetFormation
                 if (!int.TryParse(sortie, out idGestionnaire)) return false;
                 Gestionnaire? gestionnaireDest = _gestionnaires.Find(g => g.Id == idGestionnaire);
                 if (gestionnaireSrc == null || gestionnaireDest == null) return false;
-                gestionnaireSrc.CessionCompte(idCompte, gestionnaireDest);
-                return true;
+                return gestionnaireSrc.CessionCompte(idCompte, gestionnaireDest);
             }
-            return false;
+            return true;
         }
 
         public Compte? GetCompte(int id)

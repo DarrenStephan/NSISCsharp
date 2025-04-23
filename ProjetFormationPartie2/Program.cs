@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.Globalization;
+using System.Reflection.Metadata;
 
 namespace ProjetFormation
 {
@@ -9,38 +11,75 @@ namespace ProjetFormation
             Banque banque = new Banque();
             Entree entree = new Entree();
             Sortie sortie = new Sortie();
-            
-            CreationCompte(banque, entree);
+
+            CreationGestionnaires(banque, entree);
+            OperationsCompte(banque, entree, sortie);
             GestionTransactions(banque, entree, sortie);
             
             entree.FermetureReader();
             sortie.FermetureWriter();
+            Console.WriteLine("fini");
         }
 
-        public static void CreationCompte(Banque banque, Entree entree)
+        public static void CreationGestionnaires(Banque banque, Entree entree)
         {
-            entree.OuvertureReaderComptes();
+            entree.OuvertureReaderGestionnaires();
             string[]? ligne = entree.Lecture();
             while (ligne != null)
             {
-                //banque.CreerCompte(int.Parse(ligne[0]), ligne[1] == "" ? 0 : decimal.Parse(ligne[1]));
+                int id;
+                TypeGestionnaire typeGestionnaire;
+                int nbTransa;
+                if (!int.TryParse(ligne[0], out id)) continue;
+                if (ligne[1] == "Particulier") typeGestionnaire = TypeGestionnaire.Particulier;
+                else if (ligne[1] == "Entreprise") typeGestionnaire = TypeGestionnaire.Entreprise;
+                else continue;
+                if (!int.TryParse(ligne[2], out nbTransa)) continue;
+                banque.AjouterGestionnaire(new Gestionnaire(id, typeGestionnaire, nbTransa));
                 ligne = entree.Lecture();
             }
             entree.FermetureReader();
         }
 
-        public static void GestionTransactions(Banque banque, Entree entree, Sortie sortie)
+        public static void OperationsCompte(Banque banque, Entree entree, Sortie sortie)
         {
-            //sortie.OuvertureWriterSortie();
-            entree.OuvertureReaderTransactions();
+            entree.OuvertureReaderComptes();
+            sortie.OuvertureWriterStatutsOperations();
             string[]? ligne = entree.Lecture();
             while (ligne != null)
             {
-                //Transaction transaction = new Transaction(int.Parse(ligne[0]), decimal.Parse(ligne[1]), int.Parse(ligne[2]), int.Parse(ligne[3]));
-              //  banque.TraiterTransaction(transaction);
-              //  sortie.Ecriture(transaction, banque.Comptes);
+                if (!DateTime.TryParseExact(ligne[1], "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date)) continue;
+                if (!int.TryParse(ligne[0], out int id)) continue;
+                if (ligne[2] == "") ligne[2] = "0";
+                if (!decimal.TryParse(ligne[2], out decimal solde)) continue;
+
+                bool statut = banque.TraiterOperationCompte(id, date, solde, ligne[3], ligne[4]);
+                sortie.Ecriture(id, statut);
                 ligne = entree.Lecture();
             }
+            entree.FermetureReader();
+            sortie.FermetureWriter();
+        }
+
+        public static void GestionTransactions(Banque banque, Entree entree, Sortie sortie)
+        {
+            entree.OuvertureReaderTransactions();
+            sortie.OuvertureWriterStatutsTransactions();
+            string[]? ligne = entree.Lecture();
+            while (ligne != null)
+            {
+                if (!int.TryParse(ligne[0], out int id)) continue;
+                if (!decimal.TryParse(ligne[2], out decimal montant)) continue;
+                if (!int.TryParse(ligne[3], out int idSrc)) continue;
+                if (!int.TryParse(ligne[4], out int idDest)) continue;
+                if (!DateTime.TryParseExact(ligne[1], "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date)) continue;
+                Transaction transaction = new Transaction(id, montant, idSrc, idDest, date);
+                banque.TraiterTransaction(transaction);
+                sortie.Ecriture(id, transaction.Statut);
+                ligne = entree.Lecture();
+            }
+            entree.FermetureReader();
+            sortie.FermetureWriter();
         }
         /*
         public static void TestBanque()

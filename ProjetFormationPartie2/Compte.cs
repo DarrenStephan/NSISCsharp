@@ -4,16 +4,14 @@
     {
         private int _id;
         private decimal _solde;
-        private int _limiteRetrait;
         private DateTime _dateCreation;
         private DateTime _dateResiliation = DateTime.MaxValue;
         private List<Transaction> _historiqueTransactions;
 
-        internal Compte(int id, decimal solde, int limiteRetrait, DateTime dateCreation)
+        internal Compte(int id, decimal solde, DateTime dateCreation)
         {
             _id = id;
             _solde = solde;
-            _limiteRetrait = limiteRetrait;
             _dateCreation = dateCreation;
             _historiqueTransactions = new List<Transaction>();
         }
@@ -27,11 +25,6 @@
         {
             get { return _solde; }
             set { _solde = value; }
-        }
-
-        public int LimiteRetrait
-        {
-            get { return _limiteRetrait; }
         }
 
         public DateTime DateCreation { get { return _dateCreation; } }
@@ -54,7 +47,7 @@
 
         public bool Depot(decimal montant, DateTime dateEffet)
         {
-            if(montant <= 0 || dateEffet > _dateResiliation) return false;
+            if(montant <= 0 || dateEffet > _dateResiliation || dateEffet < _dateCreation) return false;
             _solde+= montant;
 
             return true;
@@ -62,14 +55,14 @@
 
         public bool Retrait(decimal montant, DateTime dateEffet)
         {
-            if (montant <= 0 || !VerificationLimiteRetrait(montant) || !VerificationLimiteRetraitHebdo(montant, dateEffet) || Solde < montant || dateEffet > _dateResiliation) return false;
+            if (montant <= 0 || !VerificationLimiteRetrait(montant) || !VerificationLimiteRetraitHebdo(montant, dateEffet) || Solde < montant || dateEffet > _dateResiliation || dateEffet < _dateCreation) return false;
             _solde -= montant; 
             return true;
         }
 
         public bool Virement(decimal montant, Compte compteDest, DateTime dateEffet, bool isExogene, TypeGestionnaire typeGestionnaire)
         {
-            if (montant <= 0 || !VerificationLimiteRetrait(montant) || !VerificationLimiteRetraitHebdo(montant, dateEffet) || Solde < montant || this.Id == compteDest.Id || dateEffet > _dateResiliation) return false;
+            if (montant <= 0 || !VerificationLimiteRetrait(montant) || !VerificationLimiteRetraitHebdo(montant, dateEffet) || Solde < montant || this.Id == compteDest.Id || dateEffet > _dateResiliation || dateEffet < _dateCreation || dateEffet > compteDest.DateResiliation || dateEffet < compteDest.DateCreation) return false;
             _solde -= montant;
             if(isExogene)
             {
@@ -82,7 +75,7 @@
 
         public bool Prelevement(decimal montant, Compte compteSrc, DateTime dateEffet, bool isExogene, TypeGestionnaire typeGestionnaire)
         {
-            if (montant <= 0 || !compteSrc.VerificationLimiteRetrait(montant) || !compteSrc.VerificationLimiteRetraitHebdo(montant, dateEffet) || compteSrc.Solde < montant || this.Id == compteSrc.Id || dateEffet > _dateResiliation) return false;
+            if (montant <= 0 || !compteSrc.VerificationLimiteRetrait(montant) || !compteSrc.VerificationLimiteRetraitHebdo(montant, dateEffet) || compteSrc.Solde < montant || this.Id == compteSrc.Id || dateEffet > _dateResiliation || dateEffet < _dateCreation || dateEffet > compteSrc.DateResiliation || dateEffet < compteSrc.DateCreation) return false;
             compteSrc.Solde -= montant;
             if (isExogene)
             {
@@ -109,7 +102,7 @@
                     if (rupt == 9) break;
                 }
             }
-            return montantTot + montant < _limiteRetrait;
+            return montantTot + montant < 1000;
         }
 
         /* verifie que sur la derniere semaine le montant total des transactions  
